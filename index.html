@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Firebase Premium | Next-Gen Backend Solution</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #0a0a0f; overflow-x: hidden; }
+        
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .glass {
+            background: rgba(15, 25, 35, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 255, 0.15);
+        }
+        
+        .glass-card {
+            background: rgba(10, 20, 30, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.1);
+            transform: translateY(-5px);
+        }
+        
+        .btn-neon {
+            background: linear-gradient(135deg, #00b4d8, #0077b6);
+            box-shadow: 0 0 15px rgba(0, 180, 216, 0.5);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-neon:active { transform: scale(0.96); }
+        
+        .btn-dana {
+            background: linear-gradient(135deg, #0077b6, #00b4d8);
+            box-shadow: 0 0 10px rgba(0, 180, 216, 0.3);
+        }
+        
+        .btn-gopay {
+            background: linear-gradient(135deg, #00a86b, #0077b6);
+            box-shadow: 0 0 10px rgba(0, 168, 107, 0.3);
+        }
+        
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(0, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00ffff;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .page { animation: pageFade 0.3s ease; }
+        @keyframes pageFade {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff00;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0f; }
+        ::-webkit-scrollbar-thumb { background: #00ffff; border-radius: 3px; }
+        
+        .copy-number {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-number:hover {
+            background: rgba(0, 255, 255, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .payment-method {
+            transition: all 0.2s;
+        }
+        .payment-method:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="particleCanvas"></canvas>
+
+<!-- Navbar -->
+<nav class="fixed top-0 left-0 w-full z-50 glass py-4 px-6">
+    <div class="container mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('home')">
+            <i class="fa-brands fa-firebase text-3xl text-cyan-400"></i>
+            <span class="text-xl font-bold text-white">Firebase<span class="text-cyan-400">Premium</span></span>
+        </div>
+        
+        <div class="hidden md:flex gap-8 text-gray-300">
+            <a href="#" onclick="showPage('home')" class="hover:text-cyan-400 transition">Home</a>
+            <a href="#" onclick="showPage('products')" class="hover:text-cyan-400 transition">Produk</a>
+            <a href="#" onclick="showPage('faq')" class="hover:text-cyan-400 transition">FAQ</a>
+        </div>
+        
+        <div class="flex gap-3" id="navButtons">
+            <button onclick="showPage('login')" class="px-4 py-2 border border-cyan-400 text-cyan-400 rounded-lg hover:bg-cyan-400/10 transition">
+                <i class="fas fa-sign-in-alt mr-1"></i> Login
+            </button>
+            <button onclick="showPage('register')" class="px-4 py-2 btn-neon text-white rounded-lg">
+                <i class="fas fa-user-plus mr-1"></i> Register
+            </button>
+        </div>
+    </div>
+</nav>
+
+<main class="pt-24 pb-12 px-4 relative z-10" id="mainContent">
+    <!-- HOME PAGE -->
+    <div id="homePage" class="page">
+        <div class="container mx-auto">
+            <div class="text-center mb-16">
+                <div class="inline-block px-4 py-1 rounded-full glass text-cyan-400 text-sm mb-4">
+                    <i class="fas fa-bolt mr-1"></i> Firebase Premium Partner
+                </div>
+                <h1 class="text-5xl md:text-7xl font-bold mb-6">
+                    <span class="text-white">Backend</span>
+                    <span class="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent"> Premium</span>
+                </h1>
+                <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
+                    Solusi backend enterprise-grade dengan performa maksimal. Dapatkan akses penuh ke Firebase dengan harga terjangkau.
+                </p>
+                <button onclick="showPage('products')" class="px-8 py-4 btn-neon text-white rounded-xl text-lg font-semibold">
+                    <i class="fas fa-rocket mr-2"></i> Mulai Sekarang
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-16">
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-cyan-400" id="liveUsers">247</div>
+                    <div class="text-gray-500 text-sm">Active Users</div>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-purple-400">1.2K+</div>
+                    <div class="text-gray-500 text-sm">Happy Clients</div>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-cyan-400">99.9%</div>
+                    <div class="text-gray-500 text-sm">Uptime</div>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-2xl font-bold text-purple-400">24/7</div>
+                    <div class="text-gray-500 text-sm">Support</div>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <div class="glass-card rounded-2xl p-6 text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-cyan-500/20 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-bolt text-2xl text-cyan-400"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Fast Performance</h3>
+                    <p class="text-gray-400 text-sm">Response time < 50ms dengan infrastruktur premium</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shield-alt text-2xl text-purple-400"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Secure Database</h3>
+                    <p class="text-gray-400 text-sm">Enkripsi end-to-end dengan security terbaik</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-cyan-500/20 flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-headset text-2xl text-cyan-400"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-white mb-2">Premium Support</h3>
+                    <p class="text-gray-400 text-sm">Dukungan 24/7 via WhatsApp & Live Chat</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PRODUCTS PAGE -->
+    <div id="productsPage" class="page" style="display: none;">
+        <div class="container mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-white mb-4">Produk <span class="text-cyan-400">Firebase Premium</span></h2>
+                <p class="text-gray-400">Pilih paket yang sesuai dengan kebutuhan anda</p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6" id="productsGrid"></div>
+        </div>
+    </div>
+    
+    <!-- LOGIN PAGE -->
+    <div id="loginPage" class="page" style="display: none;">
+        <div class="container mx-auto max-w-md">
+            <div class="glass-card rounded-2xl p-8">
+                <div class="text-center mb-6">
+                    <i class="fa-brands fa-firebase text-5xl text-cyan-400 mb-3"></i>
+                    <h2 class="text-2xl font-bold text-white">Login</h2>
+                    <p class="text-gray-400 text-sm">Masuk ke akun Firebase Premium anda</p>
+                </div>
+                <div class="space-y-4">
+                    <input type="email" id="loginEmail" placeholder="Email" class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white focus:border-cyan-400 outline-none">
+                    <input type="password" id="loginPassword" placeholder="Password" class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white focus:border-cyan-400 outline-none">
+                    <button onclick="handleLogin()" class="w-full py-3 btn-neon text-white rounded-xl font-semibold">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Masuk
+                    </button>
+                    <p class="text-center text-gray-400 text-sm">
+                        Belum punya akun? 
+                        <a href="#" onclick="showPage('register')" class="text-cyan-400 hover:underline">Register</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- REGISTER PAGE -->
+    <div id="registerPage" class="page" style="display: none;">
+        <div class="container mx-auto max-w-md">
+            <div class="glass-card rounded-2xl p-8">
+                <div class="text-center mb-6">
+                    <i class="fa-brands fa-firebase text-5xl text-cyan-400 mb-3"></i>
+                    <h2 class="text-2xl font-bold text-white">Register</h2>
+                    <p class="text-gray-400 text-sm">Buat akun Firebase Premium baru</p>
+                </div>
+                <div class="space-y-4">
+                    <input type="text" id="regName" placeholder="Nama Lengkap" class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white focus:border-cyan-400 outline-none">
+                    <input type="email" id="regEmail" placeholder="Email" class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white focus:border-cyan-400 outline-none">
+                    <input type="password" id="regPassword" placeholder="Password" class="w-full px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl text-white focus:border-cyan-400 outline-none">
+                    <button onclick="handleRegister()" class="w-full py-3 btn-neon text-white rounded-xl font-semibold">
+                        <i class="fas fa-user-plus mr-2"></i> Daftar Sekarang
+                    </button>
+                    <p class="text-center text-gray-400 text-sm">
+                        Sudah punya akun? 
+                        <a href="#" onclick="showPage('login')" class="text-cyan-400 hover:underline">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- DASHBOARD PAGE -->
+    <div id="dashboardPage" class="page" style="display: none;">
+        <div class="container mx-auto max-w-4xl">
+            <div class="glass-card rounded-2xl p-6 mb-6">
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Dashboard</h2>
+                        <p class="text-gray-400">Selamat datang, <span id="userName" class="text-cyan-400">User</span></p>
+                    </div>
+                    <button onclick="logout()" class="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-500/10 transition">
+                        <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                    </button>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-6 mb-6">
+                <h3 class="text-lg font-semibold text-white mb-4">
+                    <i class="fas fa-database text-cyan-400 mr-2"></i> Firebase Console
+                </h3>
+                <a href="https://console.firebase.google.com/u/0/project/gocukaiqa-d3ce9/overview?hl=id" target="_blank" class="block glass rounded-xl p-4 hover:border-cyan-400 transition">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-brands fa-firebase text-3xl text-cyan-400"></i>
+                        <div>
+                            <p class="text-white font-semibold">Akses Firebase Console</p>
+                            <p class="text-gray-400 text-sm">Kelola project Firebase anda disini</p>
+                        </div>
+                        <i class="fas fa-external-link-alt text-gray-500 ml-auto"></i>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-6 mb-6" id="apiKeySection" style="display: none;">
+                <h3 class="text-lg font-semibold text-white mb-4">
+                    <i class="fas fa-key text-cyan-400 mr-2"></i> API Key Anda
+                </h3>
+                <div class="bg-gray-900/50 rounded-xl p-4 flex justify-between items-center flex-wrap gap-3">
+                    <code id="apiKeyDisplay" class="text-cyan-400 text-sm break-all"></code>
+                    <button onclick="copyApiKey()" class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 transition">
+                        <i class="fas fa-copy mr-1"></i> Copy
+                    </button>
+                </div>
+                <p class="text-gray-500 text-xs mt-3">
+                    <i class="fas fa-info-circle"></i> Gunakan API Key ini untuk mengakses Firebase premium anda
+                </p>
+            </div>
+            
+            <div class="glass-card rounded-2xl p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">
+                    <i class="fas fa-history text-purple-400 mr-2"></i> Riwayat Transaksi
+                </h3>
+                <div id="transactionHistory" class="space-y-3"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FAQ PAGE -->
+    <div id="faqPage" class="page" style="display: none;">
+        <div class="container mx-auto max-w-3xl">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-white mb-4">Frequently Asked <span class="text-cyan-400">Questions</span></h2>
+                <p class="text-gray-400">Semua yang perlu anda ketahui tentang Firebase Premium</p>
+            </div>
+            <div class="space-y-4" id="faqContainer"></div>
+        </div>
+    </div>
+</main>
+
+<!-- PAYMENT MODAL (DANA/GOPAY) -->
+<div id="paymentModal" class="fixed inset-0 z-50 flex items-center justify-center" style="display: none;">
+    <div class="absolute inset-0 bg-black/90 backdrop-blur-md" onclick="closePaymentModal()"></div>
+    <div class="relative bg-gray-900 rounded-2xl p-6 max-w-md w-full mx-4 border border-cyan-500/30" style="animation: fadeInScale 0.3s ease;">
+        <button onclick="closePaymentModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+        
+        <div class="text-center mb-4">
+            <i class="fa-brands fa-firebase text-3xl text-cyan-400"></i>
+            <h3 class="text-xl font-bold text-white mt-2">Pilih Metode Pembayaran</h3>
+            <p class="text-gray-400 text-sm">Bayar via DANA atau GOPAY</p>
+        </div>
+        
+        <!-- Nomor Pembayaran -->
+        <div class="glass-card rounded-xl p-4 mb-4 text-center">
+            <p class="text-gray-400 text-sm mb-2">Nomor Pembayaran</p>
+            <div class="flex items-center justify-center gap-3">
+                <code class="text-2xl font-bold text-cyan-400">0831-4506-6569</code>
+                <button onclick="copyNumber()" class="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-lg text-sm hover:bg-cyan-500/30 transition">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <p class="text-gray-500 text-xs mt-2">Atas nama: *** (tidak perlu nama)</p>
+        </div>
+        
+        <!-- Metode Pembayaran -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <div class="payment-method glass-card rounded-xl p-4 text-center cursor-pointer" onclick="selectPaymentMethod('dana')" id="methodDana">
+                <i class="fab fa-google-pay text-3xl text-cyan-400 mb-2"></i>
+                <p class="text-white font-semibold">DANA</p>
+                <p class="text-gray-500 text-xs">0831-4506-6569</p>
+            </div>
+            <div class="payment-method glass-card rounded-xl p-4 text-center cursor-pointer" onclick="selectPaymentMethod('gopay')" id="methodGopay">
+                <i class="fas fa-credit-card text-3xl text-cyan-400 mb-2"></i>
+                <p class="text-white font-semibold">GOPAY</p>
+                <p class="text-gray-500 text-xs">0831-4506-6569</p>
+            </div>
+        </div>
+        
+        <!-- Countdown -->
+        <div class="text-center mb-4">
+            <p class="text-gray-400 text-sm">Selesaikan pembayaran sebelum</p>
+            <div id="countdownTimer" class="text-3xl font-bold text-cyan-400">10:00</div>
+        </div>
+        
+        <!-- Upload Bukti -->
+        <div class="border border-dashed border-gray-600 rounded-xl p-4 text-center mb-4" id="uploadSection">
+            <input type="file" id="paymentProof" accept="image/*" class="hidden" onchange="uploadProof(this)">
+            <button onclick="document.getElementById('paymentProof').click()" class="w-full py-2 bg-gray-800 rounded-lg text-gray-300 hover:bg-gray-700 transition">
+                <i class="fas fa-upload mr-2"></i> Upload Bukti Pembayaran
+            </button>
+            <p class="text-gray-500 text-xs mt-2">Format: JPG, PNG (Max 2MB)</p>
+        </div>
+        
+        <!-- Status -->
+        <div id="paymentStatus" class="text-center text-sm hidden">
+            <div class="loader mx-auto mb-2"></div>
+            <p class="text-cyan-400">Pembayaran sedang diverifikasi admin...</p>
+            <p class="text-gray-500 text-xs mt-1">Mohon tunggu 5-10 menit, API Key akan muncul otomatis</p>
+        </div>
+        
+        <!-- Success -->
+        <div id="paymentSuccess" class="text-center hidden">
+            <i class="fas fa-check-circle text-4xl text-green-500 mb-2"></i>
+            <p class="text-green-400 font-semibold">Pembayaran Berhasil!</p>
+            <p class="text-gray-400 text-sm mt-1">API Key akan muncul di dashboard dalam 5-10 menit</p>
+        </div>
+    </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<script>
+    // DATA PAKET
+    const packages = [
+        { name: "BASIC", price: 100000, features: ["1 Firebase Project", "Hosting", "Authentication", "Firestore Database", "Basic Support", "1 API KEY"], color: "cyan" },
+        { name: "STARTER", price: 150000, features: ["Semua fitur Basic", "Realtime Database", "Storage", "Analytics", "3 API KEY"], color: "purple" },
+        { name: "STANDARD", price: 200000, features: ["Semua fitur Starter", "Cloud Functions", "Custom Domain", "Premium Support", "5 API KEY"], color: "cyan" },
+        { name: "BUSINESS", price: 300000, features: ["Semua fitur Standard", "Admin Dashboard", "Multi User", "Unlimited Request", "Priority Support", "10 API KEY"], color: "purple" },
+        { name: "VIP", price: 400000, features: ["Semua fitur Business", "Anti Delay", "Fast Server", "Premium Database", "Full Access", "Unlimited API KEY"], color: "cyan" },
+        { name: "SULTAN", price: 500000, features: ["Semua fitur VIP", "Lifetime Access", "Private Server", "Premium Firebase Setup", "Custom Integration", "Full Premium Feature"], color: "yellow" }
+    ];
+    
+    const faqs = [
+        { q: "Apa itu Firebase Premium?", a: "Firebase Premium adalah layanan backend premium dengan performa maksimal, response time cepat, dan support 24/7." },
+        { q: "Apakah ada garansi?", a: "Ya, kami memberikan garansi 30 hari uang kembali jika tidak puas dengan layanan." },
+        { q: "Berapa lama aktivasi setelah bayar?", a: "Aktivasi maksimal 5-10 menit setelah pembayaran terverifikasi." },
+        { q: "Bisa upgrade paket?", a: "Ya, anda bisa upgrade paket kapan saja dengan membayar selisih harga." },
+        { q: "Cara bayar?", a: "Transfer ke DANA/GOPAY 0831-4506-6569, lalu upload bukti pembayaran." }
+    ];
+    
+    let currentUser = null;
+    let currentPackage = null;
+    let countdownInterval = null;
+    let selectedPackagePrice = 0;
+    let selectedMethod = null;
+    
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = 'toast glass rounded-xl p-4 flex items-center gap-3 border-l-4';
+        toast.style.borderLeftColor = type === 'success' ? '#00ffff' : '#ff4444';
+        toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} text-${type === 'success' ? 'cyan' : 'red'}-400"></i><span class="text-white text-sm">${message}</span>`;
+        document.getElementById('toastContainer').appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    function playClick() {
+        const audio = new Audio('data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==');
+        audio.volume = 0.2;
+        audio.play().catch(e => console.log('Audio not supported'));
+    }
+    
+    function copyNumber() {
+        navigator.clipboard.writeText("083145066569");
+        playClick();
+        showToast('Nomor berhasil disalin!', 'success');
+    }
+    
+    function selectPaymentMethod(method) {
+        playClick();
+        selectedMethod = method;
+        document.getElementById('methodDana').style.border = method === 'dana' ? '2px solid #00ffff' : '';
+        document.getElementById('methodGopay').style.border = method === 'gopay' ? '2px solid #00ffff' : '';
+        
+        showToast(`Memilih pembayaran via ${method.toUpperCase()}`, 'success');
+    }
+    
+    function renderProducts() {
+        const grid = document.getElementById('productsGrid');
+        if (!grid) return;
+        grid.innerHTML = packages.map(pkg => `
+            <div class="glass-card rounded-2xl p-6 cursor-pointer transition-all hover:scale-105" onclick="selectPackage('${pkg.name}', ${pkg.price})">
+                <div class="text-center mb-4">
+                    <div class="text-2xl font-bold text-${pkg.color}-400">${pkg.name}</div>
+                    <div class="text-3xl font-bold text-white mt-2">Rp${pkg.price.toLocaleString()}</div>
+                    <div class="text-gray-500 text-sm">/bulan</div>
+                </div>
+                <div class="space-y-2">
+                    ${pkg.features.map(f => `<div class="flex items-center gap-2 text-gray-300 text-sm"><i class="fas fa-check-circle text-${pkg.color}-400 text-xs"></i> ${f}</div>`).join('')}
+                </div>
+                <button class="w-full mt-6 py-2 btn-neon text-white rounded-lg font-semibold">Pilih Paket</button>
+            </div>
+        `).join('');
+    }
+    
+    window.selectPackage = function(name, price) {
+        playClick();
+        if (!currentUser) {
+            showToast('Silakan login terlebih dahulu', 'error');
+            showPage('login');
+            return;
+        }
+        currentPackage = name;
+        selectedPackagePrice = price;
+        selectedMethod = null;
+        document.getElementById('paymentModal').style.display = 'flex';
+        document.getElementById('methodDana').style.border = '';
+        document.getElementById('methodGopay').style.border = '';
+        startCountdown(600);
+        document.getElementById('uploadSection').style.display = 'block';
+        document.getElementById('paymentStatus').classList.add('hidden');
+        document.getElementById('paymentSuccess').classList.add('hidden');
+    };
+    
+    window.closePaymentModal = function() {
+        document.getElementById('paymentModal').style.display = 'none';
+        if (countdownInterval) clearInterval(countdownInterval);
+    };
+    
+    function startCountdown(seconds) {
+        const timerDisplay = document.getElementById('countdownTimer');
+        let remaining = seconds;
+        if (countdownInterval) clearInterval(countdownInterval);
+        timerDisplay.classList.remove('text-red-500');
+        countdownInterval = setInterval(() => {
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            if (remaining <= 0) {
+                clearInterval(countdownInterval);
+                timerDisplay.textContent = 'EXPIRED';
+                timerDisplay.classList.add('text-red-500');
+                showToast('Waktu pembayaran habis, silakan pilih paket lagi', 'error');
+                setTimeout(() => closePaymentModal(), 2000);
+            }
+            remaining--;
+        }, 1000);
+    }
+    
+    window.uploadProof = function(input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (!selectedMethod) {
+            showToast('Pilih metode pembayaran terlebih dahulu (DANA/GOPAY)', 'error');
+            input.value = '';
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('File terlalu besar (max 2MB)', 'error');
+            input.value = '';
+            return;
+        }
+        playClick();
+        document.getElementById('uploadSection').style.display = 'none';
+        const statusDiv = document.getElementById('paymentStatus');
+        statusDiv.classList.remove('hidden');
+        
+        setTimeout(() => {
+            statusDiv.classList.add('hidden');
+            document.getElementById('paymentSuccess').classList.remove('hidden');
+            
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            transactions.unshift({
+                id: Date.now(),
+                date: new Date().toLocaleString(),
+                package: currentPackage,
+                amount: selectedPackagePrice,
+                method: selectedMethod,
+                status: 'pending'
+            });
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            
+            const fakeKey = `AIzaSy${Math.random().toString(36).substring(2, 20).toUpperCase()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+            localStorage.setItem(`apikey_${currentUser.email}`, fakeKey);
+            localStorage.setItem(`apikey_time_${currentUser.email}`, Date.now().toString());
+            
+            setTimeout(() => {
+                closePaymentModal();
+                showToast(`Pembayaran via ${selectedMethod.toUpperCase()} berhasil! API Key telah diaktifkan`, 'success');
+                
+                const updatedTrans = JSON.parse(localStorage.getItem('transactions') || '[]');
+                const found = updatedTrans.find(t => t.package === currentPackage && t.status === 'pending');
+                if (found) found.status = 'success';
+                localStorage.setItem('transactions', JSON.stringify(updatedTrans));
+                
+                if (document.getElementById('dashboardPage').style.display !== 'none') {
+                    loadDashboardData();
+                }
+                input.value = '';
+            }, 2000);
+        }, 5000);
+    };
+    
+    window.copyApiKey = function() {
+        const key = document.getElementById('apiKeyDisplay').textContent;
+        navigator.clipboard.writeText(key);
+        playClick();
+        showToast('API Key berhasil disalin!', 'success');
+    };
+    
+    window.handleLogin = function() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        if (!email || !password) {
+            showToast('Isi email dan password', 'error');
+            return;
+        }
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const user = users.find(u => u.email === email && u.password === password);
+        if (user) {
+            currentUser = user;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            playClick();
+            showToast('Login berhasil!', 'success');
+            updateNavButtons();
+            showPage('dashboard');
+            loadDashboardData();
+        } else {
+            showToast('Email atau password salah', 'error');
+        }
+    };
+    
+    window.handleRegister = function() {
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        if (!name || !email || !password) {
+            showToast('Isi semua field', 'error');
+            return;
+        }
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        if (users.find(u => u.email === email)) {
+            showToast('Email sudah terdaftar', 'error');
+            return;
+        }
+        const newUser = { name, email, password };
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+        currentUser = newUser;
+        localStorage.setItem('currentUser', JSON.stringify(newUser));
+        playClick();
+        showToast('Registrasi berhasil!', 'success');
+        updateNavButtons();
+        showPage('dashboard');
+        loadDashboardData();
+    };
+    
+    window.logout = function() {
+        currentUser = null;
+        localStorage.removeItem('currentUser');
+        playClick();
+        showToast('Logout berhasil', 'success');
+        updateNavButtons();
+        showPage('home');
+    };
+    
+    function updateNavButtons() {
+        const navButtons = document.getElementById('navButtons');
+        if (currentUser) {
+            navButtons.innerHTML = `
+                <button onclick="showPage('dashboard')" class="px-4 py-2 btn-neon text-white rounded-lg">
+                    <i class="fas fa-tachometer-alt mr-1"></i> Dashboard
+                </button>
+                <button onclick="logout()" class="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-500/10 transition">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                </button>
+            `;
+        } else {
+            navButtons.innerHTML = `
+                <button onclick="showPage('login')" class="px-4 py-2 border border-cyan-400 text-cyan-400 rounded-lg hover:bg-cyan-400/10 transition">
+                    <i class="fas fa-sign-in-alt mr-1"></i> Login
+                </button>
+                <button onclick="showPage('register')" class="px-4 py-2 btn-neon text-white rounded-lg">
+                    <i class="fas fa-user-plus mr-1"></i> Register
+                </button>
+            `;
+        }
+    }
+    
+    function loadDashboardData() {
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+            
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            const userTransactions = transactions.filter(t => t.email === currentUser.email);
+            const historyDiv = document.getElementById('transactionHistory');
+            
+            if (userTransactions.length === 0) {
+                historyDiv.innerHTML = '<p class="text-gray-500 text-center py-4">Belum ada transaksi</p>';
+            } else {
+                historyDiv.innerHTML = userTransactions.map(t => `
+                    <div class="glass-card rounded-xl p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-white font-semibold">${t.package}</p>
+                            <p class="text-gray-400 text-xs">${t.date}</p>
+                            <p class="text-gray-500 text-xs">via ${t.method?.toUpperCase() || 'DANA/GOPAY'}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-cyan-400 font-bold">Rp${t.amount.toLocaleString()}</p>
+                            <p class="text-${t.status === 'success' ? 'green' : 'yellow'}-400 text-xs">${t.status === 'success' ? 'Sukses' : 'Pending'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            const savedKey = localStorage.getItem(`apikey_${currentUser.email}`);
+            if (savedKey) {
+                document.getElementById('apiKeySection').style.display = 'block';
+                document.getElementById('apiKeyDisplay').textContent = savedKey;
+            } else {
+                document.getElementById('apiKeySection').style.display = 'none';
+            }
+        }
+    }
+    
+    function renderFaq() {
+        const container = document.getElementById('faqContainer');
+        if (!container) return;
+        container.innerHTML = faqs.map((faq, index) => `
+            <div class="glass-card rounded-xl overflow-hidden">
+                <button onclick="toggleFaq(${index})" class="w-full px-6 py-4 text-left flex justify-between items-center">
+                    <span class="text-white font-semibold">${faq.q}</span>
+                    <i class="fas fa-chevron-down text-cyan-400 transition-transform" id="faqIcon${index}"></i>
+                </button>
+                <div id="faqAnswer${index}" class="px-6 pb-4 hidden">
+                    <p class="text-gray-400">${faq.a}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    window.toggleFaq = function(index) {
+        const answer = document.getElementById(`faqAnswer${index}`);
+        const icon = document.getElementById(`faqIcon${index}`);
+        if (answer.classList.contains('hidden')) {
+            answer.classList.remove('hidden');
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            answer.classList.add('hidden');
+            icon.style.transform = 'rotate(0deg)';
+        }
+    };
+    
+    window.showPage = function(page) {
+        playClick();
+        const pages = ['homePage', 'productsPage', 'loginPage', 'registerPage', 'dashboardPage', 'faqPage'];
+        pages.forEach(p => {
+            const el = document.getElementById(p);
+            if (el) el.style.display = 'none';
+        });
+        const activePage = document.getElementById(`${page}Page`);
+        if (activePage) activePage.style.display = 'block';
+        if (page === 'dashboard' && !currentUser) {
+            showPage('login');
+            showToast('Silakan login terlebih dahulu', 'error');
+        }
+        if (page === 'products') renderProducts();
+        if (page === 'faq') renderFaq();
+        window.location.hash = page;
+    };
+    
+    // PARTICLES
+    function initParticles() {
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        function createParticles() {
+            particles = [];
+            for (let i = 0; i < 100; i++) {
+                particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, radius: Math.random() * 2, alpha: Math.random() * 0.5, speed: 0.5 + Math.random() * 1 });
+            }
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.y -= p.speed;
+                if (p.y < 0) p.y = canvas.height;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 255, 255, ${p.alpha})`;
+                ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        }
+        window.addEventListener('resize', () => { resize(); createParticles(); });
+        resize();
+        createParticles();
+        animate();
+    }
+    
+    function animateNumber(element, start, end, duration = 1000) {
+        let startTime = null;
+        function animate(currentTime) {
+            if (!startTime) startTime = currentTime;
+            const progress = Math.min((currentTime - startTime) / duration, 1);
+            element.textContent = Math.floor(start + (end - start) * progress);
+            if (progress < 1) requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+    }
+    
+    function startLiveCounter() {
+        const counter = document.getElementById('liveUsers');
+        if (counter) {
+            setInterval(() => {
+                const newValue = 200 + Math.floor(Math.random() * 100);
+                animateNumber(counter, parseInt(counter.textContent), newValue, 500);
+            }, 10000);
+        }
+    }
+    
+    function init() {
+        initParticles();
+        startLiveCounter();
+        renderProducts();
+        renderFaq();
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            currentUser = JSON.parse(savedUser);
+            updateNavButtons();
+        }
+        const hash = window.location.hash.substring(1);
+        if (hash && ['home', 'products', 'login', 'register', 'dashboard', 'faq'].includes(hash)) {
+            showPage(hash);
+        } else {
+            showPage('home');
+        }
+    }
+    
+    init();
+</script>
+</body>
+</html>
